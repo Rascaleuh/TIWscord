@@ -4,12 +4,39 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node serveur/index.js",
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "test": "echo \"Error: pas de tests pour le moment\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "https://forge.univ-lyon1.fr/p1923599/8-tws-tp1.git"
   },
   "author": "IDOUX Etienne",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^4.5.2",
+    "express": "^4.17.1",
+    "react": "^16.13.1",
+    "react-bootstrap": "^1.3.0",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "eslint": "^7.9.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-loader": "^4.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-hooks": "^4.1.2",
+    "file-loader": "^6.1.0",
+    "html-webpack-plugin": "^4.4.1",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
+  }
 }
