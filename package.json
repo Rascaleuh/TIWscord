@@ -1,7 +1,14 @@
 {
   "name": "8-tws-tp1",
   "version": "1.0.0",
-  "description": "",
+  "description": "TP1 for 8-TWS running express & react",
+  "author": "IDOUX Etienne",
+  "license": "MIT",
+  "homepage": "https://forge.univ-lyon1.fr/p1923599/8-tws-tp1#readme",
+  "engines": {
+    "npm": "6.14.7",
+    "node": "v14.7.0"
+  },
   "main": "index.js",
   "scripts": {
     "start": "node serveur/index.js",
@@ -13,8 +20,6 @@
     "type": "git",
     "url": "https://forge.univ-lyon1.fr/p1923599/8-tws-tp1.git"
   },
-  "author": "IDOUX Etienne",
-  "license": "MIT",
   "dependencies": {
     "bootstrap": "^4.5.2",
     "express": "^4.17.1",
