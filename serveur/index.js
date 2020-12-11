@@ -1,27 +1,32 @@
 const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
-
+const http = require('http');
 const path = require('path');
+const app = express();
+const server = http.createServer(app);
+const { ExpressPeerServer } = require('peer');
+const port = process.env.PORT || '3000';
+
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+  path: '/mypeer',
+});
+
+app.use(peerServer);
+
 const DIST_DIR = path.join(__dirname, '../dist');
-const HTML_FILE = path.join(DIST_DIR, 'index.html');
-
-const mockResponse = {
-  foo: 'bar',
-  bar: 'foo'
-};
-
-// Static files
 app.use(express.static(DIST_DIR));
 
-app.get('/api', (req, res) => {
-  res.send(mockResponse);
+app.get('/', (request, response) => {
+  response.sendFile(__dirname + '/index.html');
 });
 
-app.get('/', (req, res) => {
- res.status(200).send('Hello World!');
-});
+server.listen(port);
+console.log('Listening on: ' + port);
 
-app.listen(port, function () {
- console.log('App listening on port: ' + port);
+peerServer.on('connection', (client) => {
+    console.log("connexion de " + client.id + "!");
+})
+
+peerServer.on('disconnect', (client) => {
+    console.log("deconnexion de " + client.id);
 });
