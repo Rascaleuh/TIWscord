@@ -11,6 +11,7 @@ const port = process.env.PORT || '3000';
 const peerServer = ExpressPeerServer(server, {
   debug: true,
   path: '/mypeer',
+  proxied: true,
 });
 
 app.use(peerServer);
