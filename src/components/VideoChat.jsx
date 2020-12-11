@@ -17,7 +17,7 @@ function newPeer(id) {
     path: '/mypeer',
     secure: true,
   });
-};
+}
 
 // function newPeer(id) {
 //   return new Peer(id, {
