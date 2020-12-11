@@ -13,7 +13,6 @@ const peerConnection = {
 function newPeer(id) {
   return new Peer(id, {
     host: 'tp3-idoux-vialatoux.herokuapp.com',
-    port: 3000,
     path: '/mypeer',
   });
 }
