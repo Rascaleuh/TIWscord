@@ -101,7 +101,12 @@ function VideoChat() {
   };
 
   return (
-    <div>
+    <Grid
+      container
+      direction="column"
+      justify="center"
+      alignItems="center"
+    >
       <Grid item>
         <TextField
           label="Votre identifiant"
@@ -141,7 +146,7 @@ function VideoChat() {
       >
         <track kind="captions" srcLang="en" label="english_captions" />
       </video>
-    </div>
+    </Grid>
   );
 }
 
