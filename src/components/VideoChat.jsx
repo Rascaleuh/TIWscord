@@ -15,7 +15,6 @@ function newPeer(id) {
     host: 'http://tp3-idoux-vialatoux.herokuapp.com',
     port: 3000,
     path: '/mypeer',
-    secure: true,
   });
 }
 
