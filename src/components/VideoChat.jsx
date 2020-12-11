@@ -12,11 +12,20 @@ const peerConnection = {
 
 function newPeer(id) {
   return new Peer(id, {
-    host: 'localhost',
-    port: 3000,
+    host: 'https://tp3-idoux-vialatoux.herokuapp.com',
+    port: 443,
     path: '/mypeer',
+    secure: true,
   });
 }
+
+// function newPeer(id) {
+//   return new Peer(id, {
+//     host: 'localhost',
+//     port: 3000,
+//     path: '/mypeer',
+//   });
+// }
 
 function VideoChat() {
   const [startAvailable, setStart] = useState(true);
@@ -67,6 +76,8 @@ function VideoChat() {
     const getUserMedia = navigator.getUserMedia
       || navigator.webkitGetUserMedia
       || navigator.mozGetUserMedia;
+
+    // Get VIDEO
     getUserMedia({ video: true, audio: true }, (stream) => {
       const call = peerConnection.peer.call(dstId, stream);
       call.on('stream', (remoteStream) => {
@@ -76,6 +87,7 @@ function VideoChat() {
       console.log('Failed to get local stream', err);
     });
 
+    // Receive VIDEO
     peerConnection.peer.on('call', (call) => {
       getUserMedia({ video: true, audio: true }, (stream) => {
         call.answer(stream); // Answer the call with an A/V stream.
@@ -85,16 +97,6 @@ function VideoChat() {
       }, (err) => {
         console.log('Failed to get local stream', err);
       });
-    });
-
-    peerConnection.conn.on('close', () => {
-      console.log('connection closed !');
-      gotRemoteStream(null);
-    });
-
-    peerConnection.peer.on('disconnect', () => {
-      console.log('connection disconnected !');
-      gotRemoteStream(null);
     });
 
     setHangup(true);
