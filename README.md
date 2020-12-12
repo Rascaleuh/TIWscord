@@ -10,9 +10,10 @@
 
 > TP1 for 8-TWS running express & react
 
-### 🏠 [Homepage](https://forge.univ-lyon1.fr/p1923599/8-tws-tp1#readme)
+### 🏠 [Homepage](https://forge.univ-lyon1.fr/p1923599/8-tws-tp3#readme)
 
-### ✨ [Demo](https://idoux-tws.herokuapp.com)
+### ✨ [Demo Chat](https://tp3-idoux-vialatoux.herokuapp.com)
+### ✨ [Demo Video](https://tp3-idoux-vialatoux.herokuapp.com/#/video)
 
 ## :pencil: Prerequisites
 

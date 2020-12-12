@@ -10,20 +10,20 @@ const peerConnection = {
   conn: null,
 };
 
-function newPeer(id) {
-  return new Peer(id, {
-    host: 'tp3-idoux-vialatoux.herokuapp.com',
-    path: '/mypeer',
-  });
-}
-
 // function newPeer(id) {
 //   return new Peer(id, {
-//     host: 'localhost',
-//     port: 3000,
+//     host: 'tp3-idoux-vialatoux.herokuapp.com',
 //     path: '/mypeer',
 //   });
 // }
+
+function newPeer(id) {
+  return new Peer(id, {
+    host: 'localhost',
+    port: 3000,
+    path: '/mypeer',
+  });
+}
 
 function VideoChat() {
   const [startAvailable, setStart] = useState(true);
@@ -52,6 +52,18 @@ function VideoChat() {
     peerConnection.peer = newPeer(srcId);
     peerConnection.conn = peerConnection.peer.connect(dstId);
 
+    // Receive DISCONNECT message
+    peerConnection.peer.on('connection', (conn) => {
+      conn.on('data', (data) => {
+        if (data === 'DISCONNECT') {
+          conn.close();
+          peerConnection.peer.destroy();
+          gotRemoteStream(null);
+          setHangup(false);
+        }
+      });
+    });
+
     setStart(false);
     navigator.mediaDevices
       .getUserMedia({
@@ -62,12 +74,19 @@ function VideoChat() {
       .catch((e) => { console.log(e); alert(`getUserMedia() error: ${e.name}`); });
   };
 
+  const sendmessage = () => {
+    // Send Manual disconnect message
+    peerConnection.conn.send('DISCONNECT');
+    return true;
+  };
+
   const hangup = () => {
-    peerConnection.conn.close();
-    peerConnection.peer.disconnect();
-    peerConnection.peer.destroy();
-    setHangup(false);
-    gotRemoteStream(null);
+    if (sendmessage()) {
+      // Disconnect myself
+      peerConnection.peer.disconnect();
+      setHangup(false);
+      gotRemoteStream(null);
+    }
   };
 
   const callDst = () => {
