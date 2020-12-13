@@ -319,7 +319,7 @@ function VideoChat({ id }) {
             </Button>
           </Grid>
           <Grid item className={classes.headerItem}>
-            <Button onClick={hangup} className={classes.hangup}>
+            <Button onClick={hangup} className={classes.hangup} disabled={!hangupAvailable}>
               Hang Up
             </Button>
           </Grid>
