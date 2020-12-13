@@ -110,12 +110,26 @@ function VideoChat({ id }) {
   const localStreamRef = useRef();
   const remoteVideoRef = useRef();
   const classes = useStyles();
+  const [showButtons, setShowButtons] = useState(false);
+  const [showVideoCam, setShowVideoCam] = useState(false);
+  const [showMic, setShowMic] = useState(true);
 
-  const gotMute = (myBool) => {
+  const gotMute = () => {
+    setShowMic(!showMic);
     if (localStreamRef.current != null) {
       if (localStreamRef.current.getAudioTracks() != null) {
-        console.log(localStreamRef.current.getAudioTracks()[0]);
-        localStreamRef.current.getAudioTracks()[0].enabled = myBool;
+        localStreamRef.current.getAudioTracks()[0].enabled = !showMic;
+      }
+    }
+  };
+
+  const gotVideo = () => {
+    setShowVideoCam(!showVideoCam);
+    if (localStreamRef.current != null) {
+      if (localStreamRef.current.getVideoTracks() != null) {
+        localStreamRef.current.getVideoTracks()[0].enabled = showVideoCam;
+        // Cut connected video
+        // remoteVideoRef.current.srcObject.getVideoTracks()[0].enabled = showVideoCam;
       }
     }
   };
@@ -137,9 +151,9 @@ function VideoChat({ id }) {
     if (id !== '') {
       peerConnection.peer = newPeer(id);
 
-      peerConnection.peer.on('open', (ide) => {
+      /* peerConnection.peer.on('open', (ide) => {
         console.log(ide);
-      });
+      }); */
 
       peerConnection.peer.on('connection', (conn) => {
         console.log('connected');
@@ -171,6 +185,7 @@ function VideoChat({ id }) {
       })
       .then(gotStream)
       .catch((e) => { console.log(e); alert(`getUserMedia() error: ${e.name}`); });
+    setShowButtons(true);
   };
 
   const hangup = () => {
@@ -295,26 +310,40 @@ function VideoChat({ id }) {
             ref={localVideoRef}
             autoPlay
             style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
-            id="videoId"
           >
             <track kind="captions" srcLang="en" label="english_captions" />
           </video>
-          <Grid item>
-            <ButtonGroup variant="contained" style={{ color: 'white' }} aria-label="contained primary button group">
-              <Button>
-                <VideoCamIcon style={{ color: 'rgb(76, 175, 80)' }} />
-              </Button>
-              <Button>
-                <VideoCamOffIcon color="secondary" />
-              </Button>
-              <Button onClick={gotMute(false)}>
-                <MicIcon style={{ color: 'rgb(76, 175, 80)' }} />
-              </Button>
-              <Button onClick={gotMute(true)}>
-                <MicOffIcon color="secondary" />
-              </Button>
-            </ButtonGroup>
-          </Grid>
+          {
+            showButtons
+            && (
+            <Grid item>
+              <ButtonGroup variant="contained" style={{ color: 'white' }} aria-label="contained primary button group">
+                <Button onClick={gotVideo}>
+                  {
+                    showVideoCam
+                      ? (
+                        <VideoCamOffIcon color="secondary" />
+                      )
+                      : (
+                        <VideoCamIcon style={{ color: 'rgb(76, 175, 80)' }} />
+                      )
+                  }
+                </Button>
+                <Button onClick={gotMute}>
+                  {
+                    showMic
+                      ? (
+                        <MicIcon style={{ color: 'rgb(76, 175, 80)' }} />
+                      )
+                      : (
+                        <MicOffIcon color="secondary" />
+                      )
+                  }
+                </Button>
+              </ButtonGroup>
+            </Grid>
+            )
+          }
         </Grid>
         <Grid
           item
