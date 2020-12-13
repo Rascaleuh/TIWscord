@@ -1,5 +1,5 @@
 import {
-  Button, TextField, Grid, CssBaseline, Paper, Box, Avatar, Hidden
+  Button, TextField, Grid, CssBaseline, Paper, Box, Avatar,
 } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import HomeIcon from '@material-ui/icons/Home';
@@ -9,7 +9,7 @@ import Peer from 'peerjs';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   main: {
     height: '100vh',
     flexWrap: 'nowrap',
@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
   conversationGrid: {
-    flexGrow:1,
+    flexGrow: '1',
     overflow: 'hidden',
     paddingBottom: '0.5rem',
   },
@@ -185,7 +185,7 @@ function DataChat({ id }) {
       send();
       document.getElementById('sendMessage').blur();
     }
-  }
+  };
 
   return (
     <Grid

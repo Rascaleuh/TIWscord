@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Button, TextField, Grid, CssBaseline, Paper, ButtonGroup,
+  Button, TextField, Grid, CssBaseline, Paper, ButtonGroup, Avatar,
 } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import HomeIcon from '@material-ui/icons/Home';
@@ -13,13 +13,25 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import PropTypes from 'prop-types';
 
-const useStyles = makeStyles((theme) => ({
-  grid: {
+const useStyles = makeStyles(() => ({
+  main: {
     height: '100vh',
   },
-  paper: {
-    padding: theme.spacing(2),
+  header: {
+    flexGrow: '0',
     width: '100vw',
+  },
+  headerItem: {
+    padding: '0.5rem',
+  },
+  link: {
+    textDecoration: 'none',
+  },
+  homeIcon: {
+    color: 'white',
+    backgroundColor: '#a4508b',
+    backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
+    padding: '0.5rem',
   },
   start: {
     textTransform: 'uppercase',
@@ -46,7 +58,8 @@ const useStyles = makeStyles((theme) => ({
   },
   call: {
     height: '100vh',
-    backgroundColor: '#2c3238',
+    backgroundColor: '#a4508b',
+    backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
   fullWidth: {
     width: '100%',
@@ -113,6 +126,31 @@ function VideoChat({ id }) {
   const [showButtons, setShowButtons] = useState(false);
   const [showVideoCam, setShowVideoCam] = useState(false);
   const [showMic, setShowMic] = useState(true);
+  const [remoteIsMuted, setRemoteIsMuted] = useState(false);
+  const [remoteVideoIsUp, setRemoteVideoIsUp] = useState(false);
+
+  const changeRemoteMic = () => {
+    setRemoteIsMuted(!remoteIsMuted);
+    const remoteVideo = remoteVideoRef.current.srcObject;
+    console.log(remoteVideo);
+    if (remoteVideo != null) {
+      if (remoteVideo.getAudioTracks() != null) {
+        remoteVideo.getAudioTracks()[0].enabled = remoteIsMuted;
+        console.log(remoteVideo.getAudioTracks()[0].enabled);
+      }
+    }
+  };
+
+  const changeRemoteVideo = () => {
+    setRemoteVideoIsUp(!remoteVideoIsUp);
+    const remoteVideo = remoteVideoRef.current.srcObject;
+    console.log(remoteVideo);
+    if (remoteVideo != null) {
+      if (remoteVideo.getVideoTracks() != null) {
+        remoteVideo.getVideoTracks()[0].enabled = remoteVideoIsUp;
+      }
+    }
+  };
 
   const gotMute = () => {
     setShowMic(!showMic);
@@ -121,6 +159,7 @@ function VideoChat({ id }) {
         localStreamRef.current.getAudioTracks()[0].enabled = !showMic;
       }
     }
+    peerConnection.conn.send({ type: 'MIC' });
   };
 
   const gotVideo = () => {
@@ -128,10 +167,9 @@ function VideoChat({ id }) {
     if (localStreamRef.current != null) {
       if (localStreamRef.current.getVideoTracks() != null) {
         localStreamRef.current.getVideoTracks()[0].enabled = showVideoCam;
-        // Cut connected video
-        // remoteVideoRef.current.srcObject.getVideoTracks()[0].enabled = showVideoCam;
       }
     }
+    peerConnection.conn.send({ type: 'VIDEO' });
   };
 
   const gotStream = (stream) => {
@@ -151,10 +189,6 @@ function VideoChat({ id }) {
     if (id !== '') {
       peerConnection.peer = newPeer(id);
 
-      /* peerConnection.peer.on('open', (ide) => {
-        console.log(ide);
-      }); */
-
       peerConnection.peer.on('connection', (conn) => {
         console.log('connected');
         conn.on('data', (data) => {
@@ -164,6 +198,14 @@ function VideoChat({ id }) {
               peerConnection.peer.destroy();
               gotRemoteStream(null);
               setHangup(false);
+              break;
+            case 'MIC':
+              changeRemoteMic();
+              console.log('Update mic for remote !');
+              break;
+            case 'VIDEO':
+              changeRemoteVideo();
+              console.log('Update video for remote !');
               break;
             default:
               break;
@@ -193,18 +235,6 @@ function VideoChat({ id }) {
     peerConnection.peer.disconnect();
     setHangup(false);
     gotRemoteStream(null);
-  };
-
-  const start2 = () => {
-    peerConnection.conn = peerConnection.peer.connect(dstId);
-
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-        video: true,
-      })
-      .then(gotStream)
-      .catch((e) => { console.log(e); alert(`getUserMedia() error: ${e.name}`); });
   };
 
   const callDst = () => {
@@ -245,17 +275,19 @@ function VideoChat({ id }) {
   return (
     <Grid
       container
-      className={classes.grid}
+      className={classes.main}
     >
       <CssBaseline />
-      <Paper elevation={1} className={classes.paper}>
-        <Grid container spacing={2} justify="center" alignItems="center">
-          <Grid item>
+      <Paper elevation={1} className={classes.header}>
+        <Grid container justify="center" alignItems="center">
+          <Grid item className={classes.headerItem}>
             <Link to="/" className={classes.link}>
-              <HomeIcon />
+              <Avatar className={classes.homeIcon}>
+                <HomeIcon />
+              </Avatar>
             </Link>
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={3} className={classes.headerItem}>
             <TextField
               label="Your Username"
               variant="outlined"
@@ -267,7 +299,7 @@ function VideoChat({ id }) {
               size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={3} className={classes.headerItem}>
             <TextField
               label="Remote username"
               variant="outlined"
@@ -276,17 +308,17 @@ function VideoChat({ id }) {
               onChange={(e) => setDstId(e.target.value)}
             />
           </Grid>
-          <Grid item>
+          <Grid item className={classes.headerItem}>
             <Button onClick={start} disabled={!startAvailable} className={classes.start}>
               Start
             </Button>
           </Grid>
-          <Grid item>
+          <Grid item className={classes.headerItem}>
             <Button onClick={callDst} disabled={!callAvailable} className={classes.start}>
               Call
             </Button>
           </Grid>
-          <Grid item>
+          <Grid item className={classes.headerItem}>
             <Button onClick={hangup} className={classes.hangup}>
               Hang Up
             </Button>
@@ -295,7 +327,6 @@ function VideoChat({ id }) {
       </Paper>
       <Grid
         container
-        spacing={2}
         direction="row"
         justify="center"
         alignItems="center"
@@ -303,12 +334,12 @@ function VideoChat({ id }) {
       >
         <Grid
           item
-          xs={6}
           className={classes.video}
         >
           <video
             ref={localVideoRef}
             autoPlay
+            muted
             style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
           >
             <track kind="captions" srcLang="en" label="english_captions" />
@@ -347,7 +378,6 @@ function VideoChat({ id }) {
         </Grid>
         <Grid
           item
-          xs={6}
           className={classes.video}
         >
           <video
