@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Button, TextField, Grid, CssBaseline, Paper,
+  Button, TextField, Grid, CssBaseline, Paper, ButtonGroup,
 } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import HomeIcon from '@material-ui/icons/Home';
+import MicIcon from '@material-ui/icons/Mic';
+import MicOffIcon from '@material-ui/icons/MicOff';
+import VideoCamIcon from '@material-ui/icons/Videocam';
+import VideoCamOffIcon from '@material-ui/icons/VideocamOff';
 import Peer from 'peerjs';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -41,7 +45,8 @@ const useStyles = makeStyles((theme) => ({
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
   call: {
-    height: 'calc(100vh - 90px)',
+    height: '100vh',
+    backgroundColor: '#2c3238',
   },
   fullWidth: {
     width: '100%',
@@ -69,6 +74,9 @@ const useStyles = makeStyles((theme) => ({
   conversation: {
     background: 'grey',
     width: '20rem',
+  },
+  video: {
+    textAlign: 'center',
   },
 }));
 
@@ -102,6 +110,15 @@ function VideoChat({ id }) {
   const localStreamRef = useRef();
   const remoteVideoRef = useRef();
   const classes = useStyles();
+
+  const gotMute = (myBool) => {
+    if (localStreamRef.current != null) {
+      if (localStreamRef.current.getAudioTracks() != null) {
+        console.log(localStreamRef.current.getAudioTracks()[0]);
+        localStreamRef.current.getAudioTracks()[0].enabled = myBool;
+      }
+    }
+  };
 
   const gotStream = (stream) => {
     localVideoRef.current.srcObject = stream;
@@ -192,7 +209,8 @@ function VideoChat({ id }) {
 
     // Receive VIDEO
     peerConnection.peer.on('call', (call) => {
-      var acceptCall = confirm("ON T'APPEL TACCEPT ?");
+      // let acceptCall = confirm("ON T'APPEL TACCEPT ?");
+      const acceptCall = true;
       if (acceptCall) {
         getUserMedia({ video: true, audio: true }, (stream) => {
           console.log('we received a call !');
@@ -201,7 +219,7 @@ function VideoChat({ id }) {
             gotRemoteStream(remoteStream);
           });
         }, (err) => {
-          console.log('Failed to get local stream', err);
+          console.log('Failed to receive others stream', err);
         });
       }
     });
@@ -262,25 +280,51 @@ function VideoChat({ id }) {
       </Paper>
       <Grid
         container
-        alignItems="center"
+        spacing={2}
+        direction="row"
         justify="center"
+        alignItems="center"
         className={classes.call}
       >
-        <Grid item>
+        <Grid
+          item
+          xs={6}
+          className={classes.video}
+        >
           <video
             ref={localVideoRef}
             autoPlay
-            muted
-            style={{ transform: 'rotateY(180deg)' }}
+            style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
+            id="videoId"
           >
             <track kind="captions" srcLang="en" label="english_captions" />
           </video>
+          <Grid item>
+            <ButtonGroup variant="contained" style={{ color: 'white' }} aria-label="contained primary button group">
+              <Button>
+                <VideoCamIcon style={{ color: 'rgb(76, 175, 80)' }} />
+              </Button>
+              <Button>
+                <VideoCamOffIcon color="secondary" />
+              </Button>
+              <Button onClick={gotMute(false)}>
+                <MicIcon style={{ color: 'rgb(76, 175, 80)' }} />
+              </Button>
+              <Button onClick={gotMute(true)}>
+                <MicOffIcon color="secondary" />
+              </Button>
+            </ButtonGroup>
+          </Grid>
         </Grid>
-        <Grid item>
+        <Grid
+          item
+          xs={6}
+          className={classes.video}
+        >
           <video
             ref={remoteVideoRef}
             autoPlay
-            style={{ transform: 'rotateY(180deg)' }}
+            style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
           >
             <track kind="captions" srcLang="en" label="english_captions" />
           </video>

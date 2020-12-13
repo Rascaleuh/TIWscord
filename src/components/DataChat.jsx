@@ -16,6 +16,7 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: theme.spacing(2),
     width: '100vw',
+    zIndex: 1,
   },
   start: {
     textTransform: 'uppercase',
@@ -39,6 +40,10 @@ const useStyles = makeStyles((theme) => ({
     padding: '0.5rem 1rem',
     backgroundColor: '#a4508b',
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
+  },
+  sendDiv: {
+    position: 'absolute',
+    bottom: '0.5rem',
   },
   conv: {
     height: 'calc(100vh - 90px)',
@@ -219,7 +224,7 @@ function DataChat({ id }) {
           justify="center"
           className={classes.conv}
         >
-          <Grid container justify="center" alignItems="center">
+          <Grid container justify="center" alignItems="center" className={classes.sendDiv}>
             <Grid item sm={8}>
               <TextField
                 label="🗣 Message"
