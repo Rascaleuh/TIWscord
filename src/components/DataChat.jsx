@@ -1,5 +1,5 @@
 import {
-  Button, TextField, Grid, CssBaseline, Paper, Box,
+  Button, TextField, Grid, CssBaseline, Paper, Box, Avatar, Hidden
 } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import HomeIcon from '@material-ui/icons/Home';
@@ -10,13 +10,25 @@ import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 const useStyles = makeStyles((theme) => ({
-  grid: {
+  main: {
     height: '100vh',
+    flexWrap: 'nowrap',
   },
-  paper: {
-    padding: theme.spacing(2),
+  header: {
+    flexGrow: '0',
     width: '100vw',
-    zIndex: 1,
+  },
+  headerItem: {
+    padding: '0.5rem',
+  },
+  link: {
+    textDecoration: 'none',
+  },
+  homeIcon: {
+    color: 'white',
+    backgroundColor: '#a4508b',
+    backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
+    padding: '0.5rem',
   },
   start: {
     textTransform: 'uppercase',
@@ -41,12 +53,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: '#a4508b',
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
-  sendDiv: {
-    position: 'absolute',
-    bottom: '0.5rem',
-  },
-  conv: {
-    height: 'calc(100vh - 90px)',
+  conversationGrid: {
+    flexGrow:1,
+    overflow: 'hidden',
+    paddingBottom: '0.5rem',
   },
   fullWidth: {
     width: '100%',
@@ -71,9 +81,11 @@ const useStyles = makeStyles((theme) => ({
     background: '#5f0a87',
     borderRadius: '20px 20px 0px 20px',
   },
-  conversation: {
-    background: 'grey',
-    width: '20rem',
+  messages: {
+    flexGrow: '1',
+    flexWrap: 'nowrap',
+    overflow: 'auto',
+    padding: '1rem 1rem',
   },
 }));
 
@@ -98,7 +110,7 @@ function DataChat({ id }) {
   const [hangupAvailable, setHangup] = useState(false);
   const [dstId, setDstId] = useState('');
   const [msg, setMsg] = useState('');
-  const [showConv, setShowConv] = useState(false);
+  const [showConv, setShowConv] = useState(true);
   const [remoteIsTyping, setRemoteIsTyping] = useState(false);
   const [conversation, setConversation] = useState([]);
 
@@ -168,20 +180,30 @@ function DataChat({ id }) {
     peerConnection.conn.send({ type: 'NOTYPING' });
   };
 
+  const handleOnKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      send();
+      document.getElementById('sendMessage').blur();
+    }
+  }
+
   return (
     <Grid
       container
-      className={classes.grid}
+      direction="column"
+      className={classes.main}
     >
       <CssBaseline />
-      <Paper elevation={1} className={classes.paper}>
-        <Grid container spacing={2} justify="center" alignItems="center">
-          <Grid item>
+      <Paper elevation={1} className={classes.header}>
+        <Grid container justify="center" alignItems="center">
+          <Grid item className={classes.headerItem}>
             <Link to="/" className={classes.link}>
-              <HomeIcon />
+              <Avatar className={classes.homeIcon}>
+                <HomeIcon />
+              </Avatar>
             </Link>
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={3} className={classes.headerItem}>
             <TextField
               label="Your Username"
               variant="outlined"
@@ -193,7 +215,7 @@ function DataChat({ id }) {
               size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={3} className={classes.headerItem}>
             <TextField
               label="Remote username"
               variant="outlined"
@@ -202,12 +224,12 @@ function DataChat({ id }) {
               onChange={(e) => setDstId(e.target.value)}
             />
           </Grid>
-          <Grid item>
+          <Grid item className={classes.headerItem}>
             <Button onClick={start} disabled={!startAvailable} className={classes.start}>
               Start
             </Button>
           </Grid>
-          <Grid item>
+          <Grid item className={classes.headerItem}>
             <Button onClick={hangup} disabled={hangupAvailable} className={classes.hangup}>
               Hang Up
             </Button>
@@ -222,11 +244,12 @@ function DataChat({ id }) {
           direction="column-reverse"
           alignItems="center"
           justify="center"
-          className={classes.conv}
+          className={classes.conversationGrid}
         >
-          <Grid container justify="center" alignItems="center" className={classes.sendDiv}>
+          <Grid container justify="center" alignItems="center">
             <Grid item sm={8}>
               <TextField
+                id="sendMessage"
                 label="🗣 Message"
                 value={msg}
                 variant="outlined"
@@ -235,6 +258,7 @@ function DataChat({ id }) {
                 onChange={(e) => setMsg(e.target.value)}
                 onFocus={handleOnFocus}
                 onBlur={handleOnBlur}
+                onKeyDown={handleOnKeyDown}
               />
             </Grid>
             <Grid item>
@@ -246,6 +270,7 @@ function DataChat({ id }) {
           <Grid
             container
             direction="column"
+            className={classes.messages}
           >
             {
               conversation.map((message) => (
