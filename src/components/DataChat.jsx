@@ -55,6 +55,7 @@ const useStyles = makeStyles(() => ({
   },
   conversationGrid: {
     flexGrow: '1',
+    flexWrap: 'nowrap',
     overflow: 'hidden',
     paddingBottom: '0.5rem',
   },
