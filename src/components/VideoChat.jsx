@@ -1,8 +1,76 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  Button, TextField, Grid,
+  Button, TextField, Grid, CssBaseline, Paper,
 } from '@material-ui/core';
+import { Link } from 'react-router-dom';
+import HomeIcon from '@material-ui/icons/Home';
 import Peer from 'peerjs';
+import { makeStyles } from '@material-ui/core/styles';
+
+import PropTypes from 'prop-types';
+
+const useStyles = makeStyles((theme) => ({
+  grid: {
+    height: '100vh',
+  },
+  paper: {
+    padding: theme.spacing(2),
+    width: '100vw',
+  },
+  start: {
+    textTransform: 'uppercase',
+    padding: '0.5rem 1rem',
+    color: 'white',
+    fontWeight: 'bold',
+    backgroundColor: '#a4508b',
+    backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
+  },
+  hangup: {
+    textTransform: 'uppercase',
+    padding: '0.5rem 1rem',
+    color: 'white',
+    fontWeight: 'bold',
+    backgroundColor: '#F00000',
+    backgroundImage: 'linear-gradient(to right, #DC281E, #F00000)',
+  },
+  send: {
+    marginLeft: '1.5rem',
+    color: 'white',
+    padding: '0.5rem 1rem',
+    backgroundColor: '#a4508b',
+    backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
+  },
+  call: {
+    height: 'calc(100vh - 90px)',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  rcv: {
+    display: 'inline-block',
+    marginBottom: '0.5rem',
+    marginLeft: '2rem',
+    fontWeight: 'bold',
+    color: 'white',
+    padding: '0.5rem 1rem',
+    background: '#a4508b',
+    borderRadius: '20px 20px 20px 0px',
+  },
+  snd: {
+    display: 'inline-block',
+    marginBottom: '0.5rem',
+    marginRight: '2rem',
+    fontWeight: 'bold',
+    color: 'white',
+    padding: '0.5rem 1rem',
+    background: '#5f0a87',
+    borderRadius: '20px 20px 0px 20px',
+  },
+  conversation: {
+    background: 'grey',
+    width: '20rem',
+  },
+}));
 
 // PEERJS
 const peerConnection = {
@@ -25,15 +93,15 @@ function newPeer(id) {
   });
 }
 
-function VideoChat() {
+function VideoChat({ id }) {
   const [startAvailable, setStart] = useState(true);
   const [callAvailable, setCall] = useState(false);
   const [hangupAvailable, setHangup] = useState(false);
-  const [srcId, setSrcId] = useState('');
   const [dstId, setDstId] = useState('');
   const localVideoRef = useRef();
   const localStreamRef = useRef();
   const remoteVideoRef = useRef();
+  const classes = useStyles();
 
   const gotStream = (stream) => {
     localVideoRef.current.srcObject = stream;
@@ -48,21 +116,35 @@ function VideoChat() {
     }
   };
 
-  const start = () => {
-    peerConnection.peer = newPeer(srcId);
-    peerConnection.conn = peerConnection.peer.connect(dstId);
+  useEffect(() => {
+    if (id !== '') {
+      peerConnection.peer = newPeer(id);
 
-    // Receive DISCONNECT message
-    peerConnection.peer.on('connection', (conn) => {
-      conn.on('data', (data) => {
-        if (data === 'DISCONNECT') {
-          conn.close();
-          peerConnection.peer.destroy();
-          gotRemoteStream(null);
-          setHangup(false);
-        }
+      peerConnection.peer.on('open', (ide) => {
+        console.log(ide);
       });
-    });
+
+      peerConnection.peer.on('connection', (conn) => {
+        console.log('connected');
+        conn.on('data', (data) => {
+          switch (data.type) {
+            case 'DISCONNECT':
+              conn.close();
+              peerConnection.peer.destroy();
+              gotRemoteStream(null);
+              setHangup(false);
+              break;
+            default:
+              break;
+          }
+        });
+      });
+    }
+  }, []);
+
+  const start = () => {
+    // peerConnection.peer = newPeer(srcId);
+    peerConnection.conn = peerConnection.peer.connect(dstId);
 
     setStart(false);
     navigator.mediaDevices
@@ -74,19 +156,23 @@ function VideoChat() {
       .catch((e) => { console.log(e); alert(`getUserMedia() error: ${e.name}`); });
   };
 
-  const sendmessage = () => {
-    // Send Manual disconnect message
-    peerConnection.conn.send('DISCONNECT');
-    return true;
+  const hangup = () => {
+    peerConnection.conn.send({ type: 'DISCONNECT' });
+    peerConnection.peer.disconnect();
+    setHangup(false);
+    gotRemoteStream(null);
   };
 
-  const hangup = () => {
-    if (sendmessage()) {
-      // Disconnect myself
-      peerConnection.peer.disconnect();
-      setHangup(false);
-      gotRemoteStream(null);
-    }
+  const start2 = () => {
+    peerConnection.conn = peerConnection.peer.connect(dstId);
+
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+        video: true,
+      })
+      .then(gotStream)
+      .catch((e) => { console.log(e); alert(`getUserMedia() error: ${e.name}`); });
   };
 
   const callDst = () => {
@@ -106,14 +192,18 @@ function VideoChat() {
 
     // Receive VIDEO
     peerConnection.peer.on('call', (call) => {
-      getUserMedia({ video: true, audio: true }, (stream) => {
-        call.answer(stream); // Answer the call with an A/V stream.
-        call.on('stream', (remoteStream) => {
-          gotRemoteStream(remoteStream);
+      var acceptCall = confirm("ON T'APPEL TACCEPT ?");
+      if (acceptCall) {
+        getUserMedia({ video: true, audio: true }, (stream) => {
+          console.log('we received a call !');
+          call.answer(stream); // Answer the call with an A/V stream.
+          call.on('stream', (remoteStream) => {
+            gotRemoteStream(remoteStream);
+          });
+        }, (err) => {
+          console.log('Failed to get local stream', err);
         });
-      }, (err) => {
-        console.log('Failed to get local stream', err);
-      });
+      }
     });
 
     setHangup(true);
@@ -122,51 +212,86 @@ function VideoChat() {
   return (
     <Grid
       container
-      direction="column"
-      justify="center"
-      alignItems="center"
+      className={classes.grid}
     >
-      <Grid item>
-        <TextField
-          label="Votre identifiant"
-          placeholder="Monsieur A"
-          variant="outlined"
-          onChange={(e) => setSrcId(e.target.value)}
-        />
-        <TextField
-          label="Identifiant destinataire"
-          placeholder="Monsieur B"
-          variant="outlined"
-          onChange={(e) => setDstId(e.target.value)}
-        />
-      </Grid>
-
-      <Grid item>
-        <Button onClick={start} disabled={!startAvailable}>
-          Start
-        </Button>
-        <Button onClick={callDst} disabled={!callAvailable}>
-          Call
-        </Button>
-        <Button onClick={hangup} disabled={!hangupAvailable}>
-          Hang Up
-        </Button>
-      </Grid>
-      <video
-        ref={localVideoRef}
-        autoPlay
-        muted
+      <CssBaseline />
+      <Paper elevation={1} className={classes.paper}>
+        <Grid container spacing={2} justify="center" alignItems="center">
+          <Grid item>
+            <Link to="/" className={classes.link}>
+              <HomeIcon />
+            </Link>
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              label="Your Username"
+              variant="outlined"
+              fullWidth
+              value={id}
+              InputProps={{
+                readOnly: true,
+              }}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              label="Remote username"
+              variant="outlined"
+              fullWidth
+              size="small"
+              onChange={(e) => setDstId(e.target.value)}
+            />
+          </Grid>
+          <Grid item>
+            <Button onClick={start} disabled={!startAvailable} className={classes.start}>
+              Start
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button onClick={callDst} disabled={!callAvailable} className={classes.start}>
+              Call
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button onClick={hangup} className={classes.hangup}>
+              Hang Up
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+      <Grid
+        container
+        alignItems="center"
+        justify="center"
+        className={classes.call}
       >
-        <track kind="captions" srcLang="en" label="english_captions" />
-      </video>
-      <video
-        ref={remoteVideoRef}
-        autoPlay
-      >
-        <track kind="captions" srcLang="en" label="english_captions" />
-      </video>
+        <Grid item>
+          <video
+            ref={localVideoRef}
+            autoPlay
+            muted
+            style={{ transform: 'rotateY(180deg)' }}
+          >
+            <track kind="captions" srcLang="en" label="english_captions" />
+          </video>
+        </Grid>
+        <Grid item>
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            style={{ transform: 'rotateY(180deg)' }}
+          >
+            <track kind="captions" srcLang="en" label="english_captions" />
+          </video>
+        </Grid>
+      </Grid>
     </Grid>
   );
 }
+
+VideoChat.propTypes = {
+  id: PropTypes.string.isRequired,
+};
 
 export default VideoChat;
