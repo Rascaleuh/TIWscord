@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import {
+  HashRouter as Router, Route, Switch,
+} from 'react-router-dom';
 
 import DataChat from './DataChat';
 import VideoChat from './VideoChat';
@@ -15,10 +17,10 @@ function App() {
           <Home id={id} setId={setId} />
         </Route>
         <Route exact path="/chat">
-          <DataChat id={id} />
+          <DataChat id={id} setId={setId} />
         </Route>
         <Route exact path="/video">
-          <VideoChat id={id} />
+          <VideoChat id={id} setId={setId} />
         </Route>
       </Switch>
     </Router>

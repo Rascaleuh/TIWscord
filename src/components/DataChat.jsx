@@ -89,24 +89,27 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-// PEERJS
 const peerConnection = {
   peer: null,
   conn: null,
 };
 
-// function newPeer(id) {
-//   return new Peer(id, {
-//     host: 'localhost',
-//     port: 3000,
-//     path: '/mypeer',
-//   });
-// }
-function newPeer(id) {
-  return new Peer(id, {
-    host: 'tp3-idoux-vialatoux.herokuapp.com',
-    path: '/mypeer',
-  });
+function newPeer(id, isLocalhost) {
+  let peer;
+  if (isLocalhost) {
+    peer = new Peer(id, {
+      host: 'localhost',
+      port: 3000,
+      path: '/mypeer',
+    });
+  } else {
+    peer = new Peer(id, {
+      host: 'tp3-idoux-vialatoux.herokuapp.com',
+      path: '/mypeer',
+    });
+  }
+
+  return peer;
 }
 
 function DataChat({ id }) {
@@ -122,7 +125,7 @@ function DataChat({ id }) {
 
   useEffect(() => {
     if (id !== '') {
-      peerConnection.peer = newPeer(id);
+      peerConnection.peer = newPeer(id, window.location.hostname === 'localhost');
 
       peerConnection.peer.on('connection', (conn) => {
         conn.on('data', (data) => {

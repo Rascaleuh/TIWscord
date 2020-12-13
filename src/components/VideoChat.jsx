@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 const useStyles = makeStyles(() => ({
   main: {
     height: '100vh',
+    flexWrap: 'nowrap',
   },
   header: {
     flexGrow: '0',
@@ -56,8 +57,8 @@ const useStyles = makeStyles(() => ({
     backgroundColor: '#a4508b',
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
-  call: {
-    height: '100vh',
+  callGrid: {
+    flexGrow: '1',
     backgroundColor: '#a4508b',
     backgroundImage: 'linear-gradient(326deg, #a4508b 0%, #5f0a87 74%)',
   },
@@ -88,32 +89,30 @@ const useStyles = makeStyles(() => ({
     background: 'grey',
     width: '20rem',
   },
-  video: {
-    textAlign: 'center',
-  },
 }));
 
-// PEERJS
 const peerConnection = {
   peer: null,
   conn: null,
 };
 
-function newPeer(id) {
-  return new Peer(id, {
-    host: 'tp3-idoux-vialatoux.herokuapp.com',
-    path: '/mypeer',
-  });
+function newPeer(id, isLocalhost) {
+  let peer;
+  if (isLocalhost) {
+    peer = new Peer(id, {
+      host: 'localhost',
+      port: 3000,
+      path: '/mypeer',
+    });
+  } else {
+    peer = new Peer(id, {
+      host: 'tp3-idoux-vialatoux.herokuapp.com',
+      path: '/mypeer',
+    });
+  }
+
+  return peer;
 }
-
-// function newPeer(id) {
-//   return new Peer(id, {
-//     host: 'localhost',
-//     port: 3000,
-//     path: '/mypeer',
-//   });
-// }
-
 function VideoChat({ id }) {
   const [startAvailable, setStart] = useState(true);
   const [callAvailable, setCall] = useState(false);
@@ -132,11 +131,9 @@ function VideoChat({ id }) {
   const changeRemoteMic = () => {
     setRemoteIsMuted(!remoteIsMuted);
     const remoteVideo = remoteVideoRef.current.srcObject;
-    console.log(remoteVideo);
     if (remoteVideo != null) {
       if (remoteVideo.getAudioTracks() != null) {
         remoteVideo.getAudioTracks()[0].enabled = remoteIsMuted;
-        console.log(remoteVideo.getAudioTracks()[0].enabled);
       }
     }
   };
@@ -144,7 +141,6 @@ function VideoChat({ id }) {
   const changeRemoteVideo = () => {
     setRemoteVideoIsUp(!remoteVideoIsUp);
     const remoteVideo = remoteVideoRef.current.srcObject;
-    console.log(remoteVideo);
     if (remoteVideo != null) {
       if (remoteVideo.getVideoTracks() != null) {
         remoteVideo.getVideoTracks()[0].enabled = remoteVideoIsUp;
@@ -187,10 +183,9 @@ function VideoChat({ id }) {
 
   useEffect(() => {
     if (id !== '') {
-      peerConnection.peer = newPeer(id);
+      peerConnection.peer = newPeer(id, window.location.hostname === 'localhost');
 
       peerConnection.peer.on('connection', (conn) => {
-        console.log('connected');
         conn.on('data', (data) => {
           switch (data.type) {
             case 'DISCONNECT':
@@ -201,11 +196,9 @@ function VideoChat({ id }) {
               break;
             case 'MIC':
               changeRemoteMic();
-              console.log('Update mic for remote !');
               break;
             case 'VIDEO':
               changeRemoteVideo();
-              console.log('Update video for remote !');
               break;
             default:
               break;
@@ -216,7 +209,6 @@ function VideoChat({ id }) {
   }, []);
 
   const start = () => {
-    // peerConnection.peer = newPeer(srcId);
     peerConnection.conn = peerConnection.peer.connect(dstId);
 
     setStart(false);
@@ -242,7 +234,6 @@ function VideoChat({ id }) {
       || navigator.webkitGetUserMedia
       || navigator.mozGetUserMedia;
 
-    // Get VIDEO
     getUserMedia({ video: true, audio: true }, (stream) => {
       const call = peerConnection.peer.call(dstId, stream);
       call.on('stream', (remoteStream) => {
@@ -252,13 +243,10 @@ function VideoChat({ id }) {
       console.log('Failed to get local stream', err);
     });
 
-    // Receive VIDEO
     peerConnection.peer.on('call', (call) => {
-      // let acceptCall = confirm("ON T'APPEL TACCEPT ?");
       const acceptCall = true;
       if (acceptCall) {
         getUserMedia({ video: true, audio: true }, (stream) => {
-          console.log('we received a call !');
           call.answer(stream); // Answer the call with an A/V stream.
           call.on('stream', (remoteStream) => {
             gotRemoteStream(remoteStream);
@@ -275,6 +263,7 @@ function VideoChat({ id }) {
   return (
     <Grid
       container
+      direction="column"
       className={classes.main}
     >
       <CssBaseline />
@@ -330,64 +319,49 @@ function VideoChat({ id }) {
         direction="row"
         justify="center"
         alignItems="center"
-        className={classes.call}
+        className={classes.callGrid}
       >
-        <Grid
-          item
-          className={classes.video}
-        >
-          <video
-            ref={localVideoRef}
-            autoPlay
-            muted
-            style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
-          >
-            <track kind="captions" srcLang="en" label="english_captions" />
-          </video>
-          {
-            showButtons
-            && (
-            <Grid item>
-              <ButtonGroup variant="contained" style={{ color: 'white' }} aria-label="contained primary button group">
-                <Button onClick={gotVideo}>
-                  {
-                    showVideoCam
-                      ? (
-                        <VideoCamOffIcon color="secondary" />
-                      )
-                      : (
-                        <VideoCamIcon style={{ color: 'rgb(76, 175, 80)' }} />
-                      )
-                  }
-                </Button>
-                <Button onClick={gotMute}>
-                  {
-                    showMic
-                      ? (
-                        <MicIcon style={{ color: 'rgb(76, 175, 80)' }} />
-                      )
-                      : (
-                        <MicOffIcon color="secondary" />
-                      )
-                  }
-                </Button>
-              </ButtonGroup>
-            </Grid>
-            )
-          }
-        </Grid>
-        <Grid
-          item
-          className={classes.video}
-        >
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            style={{ transform: 'rotateY(180deg)', borderRadius: '5%', width: '75%' }}
-          >
+        <Grid item sm={6} xs={12} align="center">
+          <video ref={localVideoRef} autoPlay muted style={{ transform: 'rotateY(180deg)', borderRadius: '5%' }}>
             <track kind="captions" srcLang="en" label="english_captions" />
           </video>
         </Grid>
+        <Grid item sm={6} xs={12} align="center">
+          <video ref={remoteVideoRef} autoPlay style={{ transform: 'rotateY(180deg)', borderRadius: '5%' }}>
+            <track kind="captions" srcLang="en" label="english_captions" />
+          </video>
+        </Grid>
+        {
+          showButtons
+          && (
+          <Grid item sm={12} align="center">
+            <ButtonGroup variant="contained" style={{ color: 'white' }} aria-label="contained primary button group">
+              <Button onClick={gotVideo}>
+                {
+                  showVideoCam
+                    ? (
+                      <VideoCamOffIcon color="secondary" />
+                    )
+                    : (
+                      <VideoCamIcon style={{ color: 'rgb(76, 175, 80)' }} />
+                    )
+                }
+              </Button>
+              <Button onClick={gotMute}>
+                {
+                  showMic
+                    ? (
+                      <MicIcon style={{ color: 'rgb(76, 175, 80)' }} />
+                    )
+                    : (
+                      <MicOffIcon color="secondary" />
+                    )
+                }
+              </Button>
+            </ButtonGroup>
+          </Grid>
+          )
+        }
       </Grid>
     </Grid>
   );
