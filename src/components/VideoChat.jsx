@@ -99,20 +99,20 @@ const peerConnection = {
   conn: null,
 };
 
-// function newPeer(id) {
-//   return new Peer(id, {
-//     host: 'tp3-idoux-vialatoux.herokuapp.com',
-//     path: '/mypeer',
-//   });
-// }
-
 function newPeer(id) {
   return new Peer(id, {
-    host: 'localhost',
-    port: 3000,
+    host: 'tp3-idoux-vialatoux.herokuapp.com',
     path: '/mypeer',
   });
 }
+
+// function newPeer(id) {
+//   return new Peer(id, {
+//     host: 'localhost',
+//     port: 3000,
+//     path: '/mypeer',
+//   });
+// }
 
 function VideoChat({ id }) {
   const [startAvailable, setStart] = useState(true);
